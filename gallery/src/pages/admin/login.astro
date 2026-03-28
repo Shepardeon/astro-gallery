@@ -1,0 +1,65 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loginAsync } from "../../services/server/UserService";
+
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+
+    const email = data.get("email")?.toString();
+    const password = data.get("password")?.toString();
+
+    const result = await loginAsync(email ?? "", password ?? "");
+
+    return new Response(JSON.stringify({ result }));
+  } catch (error) {
+    if (error instanceof Error) {
+      return new Response(JSON.stringify({ error }));
+    }
+  }
+}
+---
+
+<BaseLayout title="Admin login">
+  <h1>Login form</h1>
+
+  <form id="loginForm">
+    <label>
+      Email
+      <input id="email" name="email" />
+    </label>
+
+    <label>
+      Password
+      <input id="password" name="password" type="password" />
+    </label>
+
+    <button type="submit">Submit</button>
+  </form>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById("loginForm") as HTMLFormElement;
+  const email = document.getElementById("email") as HTMLInputElement;
+  const password = document.getElementById("password") as HTMLInputElement;
+
+  form?.addEventListener("submit", (evt: SubmitEvent) => {
+    evt.preventDefault();
+
+    const formData = new FormData(form);
+    fetch(`http://${document.location.host}/admin/login`, {
+      method: "post",
+      body: formData,
+    }).then((res: Response) => {
+      email.value = "";
+      password.value = "";
+
+      if (res.ok) {
+        res.json().then((result) => console.log("Got response: ", result));
+      } else {
+        console.log("error", res.status);
+        res.json().then((result) => console.log("Got response: ", result));
+      }
+    });
+  });
+</script>
