@@ -1,0 +1,1 @@
+docker compose -p "astro-gallery" up -d
