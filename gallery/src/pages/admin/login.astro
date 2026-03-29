@@ -24,18 +24,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   import { api } from "../../services/client/ApiClient";
 
   const form = document.getElementById("loginForm") as HTMLFormElement;
-  const email = document.getElementById("email") as HTMLInputElement;
-  const password = document.getElementById("password") as HTMLInputElement;
 
   form?.addEventListener("submit", (evt: SubmitEvent) => {
     evt.preventDefault();
 
     const formData = new FormData(form);
-    api.post<{ token: string }>("login", formData).then((result) => {
-      email.value = "";
-      password.value = "";
-
-      console.log("Got response: ", result);
+    api.post<{ token: string }>("login", formData).then(() => {
+      window.location.replace("/admin");
     });
   });
 </script>

@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import { loginAsync } from "../../services/server/UserService";
+import { PocketBaseCollections } from "../../models/PocketBase";
 
 export async function POST(context: APIContext) {
   try {
@@ -7,20 +7,19 @@ export async function POST(context: APIContext) {
     const email = data.get("email")?.toString();
     const password = data.get("password")?.toString();
 
-    const result = await loginAsync(email ?? "", password ?? "");
+    await context.locals.pb
+      .collection(PocketBaseCollections.USERS)
+      .authWithPassword(email ?? "", password ?? "");
 
     return new Response(
       JSON.stringify({
-        token: result.token,
+        message: "Ok",
       }),
-      {
-        status: 200,
-      },
     );
   } catch (error) {
     return new Response(
       JSON.stringify({
-        error:
+        message:
           (error as { response: { message: string } })?.response?.message ??
           "Unknown error",
       }),

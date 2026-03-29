@@ -14,11 +14,14 @@ class ApiClient {
     this.getToken = options.getToken;
   }
 
-  private async buildHeaders(init?: HeadersInit): Promise<Headers> {
+  private async buildHeaders(
+    init?: HeadersInit,
+    skipContentType?: boolean,
+  ): Promise<Headers> {
     const headers = new Headers(init || {});
 
     // Default content type if not already set
-    if (!headers.has("Content-Type")) {
+    if (!headers.has("Content-Type") && !skipContentType) {
       headers.set("Content-Type", "application/json");
     }
 
@@ -33,7 +36,10 @@ class ApiClient {
   }
 
   private async request<T>(path: string, options: RequestInit): Promise<T> {
-    const headers = await this.buildHeaders(options.headers);
+    const headers = await this.buildHeaders(
+      options.headers,
+      options.body instanceof FormData,
+    );
 
     const response = await fetch(`${this.baseUrl}${path}`, {
       ...options,
@@ -56,7 +62,11 @@ class ApiClient {
     return this.request<T>(path, {
       ...options,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body: body
+        ? body instanceof FormData
+          ? body
+          : JSON.stringify(body)
+        : undefined,
     });
   }
 
@@ -64,7 +74,11 @@ class ApiClient {
     return this.request<T>(path, {
       ...options,
       method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
+      body: body
+        ? body instanceof FormData
+          ? body
+          : JSON.stringify(body)
+        : undefined,
     });
   }
 
@@ -74,6 +88,6 @@ class ApiClient {
 }
 
 export const api = new ApiClient({
-  baseUrl: import.meta.env.API_BASE_URL,
+  baseUrl: import.meta.env.PUBLIC_API_BASE_URL,
   getToken: () => localStorage.getItem("access_token"),
 });
